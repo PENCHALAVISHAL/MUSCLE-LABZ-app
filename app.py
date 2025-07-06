@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
 from config import config
-from .models import db, User, UserData, ExerciseLibrary, Workout, HydrationTracking, WeightTracking, BodyFatTracking
+from models import db, User, UserData, ExerciseLibrary, Workout, HydrationTracking, WeightTracking, BodyFatTracking
 from datetime import datetime, timedelta
 import json
 from sqlalchemy.sql import func

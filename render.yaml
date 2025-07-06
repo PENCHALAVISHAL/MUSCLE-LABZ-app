@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: smart-cafeteria
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app
+    region: oregon
+    plan: free
+    branch: main
+    repo: https://github.com/PENCHALAVISHAL/MUSCLE-LABZ-app

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Hydration Tracker{% endblock %}
+
+{% block body_class %}hydration-bg{% endblock %}
+
+{% block content %}
+<div class="page-center-wrapper">
+    <a href="{{ url_for('view_hydration') }}" style="display:block;width:180px;margin:48px auto 18px auto;text-align:center;background:#00bcd4;color:white;font-weight:bold;padding:10px 0;border-radius:8px;text-decoration:none;box-shadow:0 2px 8px rgba(0,188,212,0.10);font-size:16px;">View Entries</a>
+    <div class="form-container" style="background:rgba(255,255,255,0.60);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);padding:36px 32px;max-width:440px;margin:48px auto 32px auto;">
+        <h2 style="color:#00bcd4;font-family:'Aquire',Arial,sans-serif;letter-spacing:2px;">HYDRATION TRACKER</h2>
+        <p style="color:#0097a7;margin-bottom:8px;"><strong>Current Weight:</strong> {{ weight }} kg</p>
+        <p style="color:#0097a7;margin-bottom:24px;"><strong>Hydration Goal:</strong> {{ hydration_goal }} ml/day</p>
+        <input type="number" id="hydrationInput" placeholder="Enter water intake in ml" style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin-bottom:18px;">
+        <button type="button" onclick="logIntake()" style="background-color:#00bcd4;color:white;font-weight:bold;cursor:pointer;width:40%;padding:10px 0;border:none;border-radius:6px;font-size:15px;display:block;margin:18px auto 0 auto;">Log Intake</button>
+        <div id="hydration-error" style="color:#d32f2f;margin-top:10px;"></div>
+    </div>
+    <div style="max-width:540px;margin:0 auto 40px auto;background:rgba(0,188,212,0.15);border-radius:20px;text-align:center;padding:40px 0;">
+        <canvas id="hydrationDonut" width="380" height="380"></canvas>
+        <div style="margin-top:22px;color:#0277bd;font-size:1.25em;letter-spacing:1px;">Today's Total: <span id="todayTotal">0</span> ml / {{ hydration_goal }} ml</div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let hydrationLogs = {{ hydration_logs | safe }};
+  let todayTotal = hydrationLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+  const hydrationGoal = {{ hydration_goal }};
+  let percent = Math.min(todayTotal / hydrationGoal, 1.0) * 100;
+  document.getElementById('todayTotal').textContent = todayTotal;
+  const ctx = document.getElementById("hydrationDonut").getContext("2d");
+  // Blue-green gradient for text and chart
+  function getHydrationColor(p) {
+    // 0%: #2196f3 (blue), 100%: #43ea7f (green)
+    let r1 = 33, g1 = 150, b1 = 243; // blue
+    let r2 = 67, g2 = 234, b2 = 127; // green
+    let t = p / 100;
+    let r = Math.round(r1 + (r2 - r1) * t);
+    let g = Math.round(g1 + (g2 - g1) * t);
+    let b = Math.round(b1 + (b2 - b1) * t);
+    return `rgb(${r},${g},${b})`;
+  }
+  let chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [percent, 100 - percent],
+        backgroundColor: [getHydrationColor(percent), '#e0f7fa'],
+        borderWidth: 0,
+        cutout: "78%"
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        title: {
+          display: true,
+          text: percent.toFixed(1) + '% hydrated',
+          color: getHydrationColor(percent),
+          font: {
+            size: 32,
+            weight: 'bold',
+            family: 'Aquire, Arial, sans-serif'
+          },
+          padding: { top: 25, bottom: 0 }
+        }
+      }
+    }
+  });
+  window.logIntake = function logIntake() {
+    const errorDiv = document.getElementById('hydration-error');
+    errorDiv.textContent = '';
+    const value = parseFloat(document.getElementById("hydrationInput").value);
+    if (!value || value <= 0) {
+      errorDiv.textContent = "Enter a valid water intake.";
+      return;
+    }
+    fetch("/log_hydration", {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: value })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    })
+    .then(data => {
+      if (data.today_total !== undefined && data.hydration_goal !== undefined) {
+        todayTotal = data.today_total;
+        percent = Math.min(todayTotal / data.hydration_goal, 1.0) * 100;
+        chart.data.datasets[0].data = [percent, 100 - percent];
+        chart.data.datasets[0].backgroundColor = [getHydrationColor(percent), '#e0f7fa'];
+        chart.options.plugins.title.text = percent.toFixed(1) + '% hydrated';
+        chart.options.plugins.title.color = getHydrationColor(percent);
+        chart.update();
+        document.getElementById("hydrationInput").value = "";
+        document.getElementById('todayTotal').textContent = todayTotal;
+        errorDiv.textContent = '';
+      } else if (data.error) {
+        errorDiv.textContent = data.error;
+      }
+    })
+    .catch(err => {
+      console.error('Error logging hydration:', err);
+      errorDiv.textContent = 'Failed to log hydration. Please try again.';
+    });
+  }
+});
+</script>
+{% endblock %} 

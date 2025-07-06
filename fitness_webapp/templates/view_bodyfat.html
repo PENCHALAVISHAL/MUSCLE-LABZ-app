@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}View Body Fat Entries{% endblock %}
+{% block body_class %}bodyfat-bg{% endblock %}
+{% block content %}
+<div class="page-center-wrapper">
+    <div class="form-container" style="background:rgba(128,114,140,0.382);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);padding:36px 32px;max-width:700px;margin:48px auto 32px auto;">
+        <h2 style="color:#fff;font-family:'Aquire',Arial,sans-serif;letter-spacing:2px;text-align:center;">BODY FAT ENTRIES</h2>
+        <div style="max-width:340px;margin:0 auto 18px auto;padding:14px 0 10px 0;background:rgba(110,165,103,0.13);border-radius:12px;text-align:center;font-weight:bold;font-size:1.15em;letter-spacing:1px;">
+            Current Goal Body Fat: <span style="color:#b2ffb2;">{{ current_goal if current_goal is not none else '-' }}%</span>
+        </div>
+        <!-- Goal History Table -->
+        <div style="margin-bottom:24px;">
+            <table style="width:100%;border-collapse:collapse;color:#fff;background:rgba(255,255,255,0.04);">
+                <thead>
+                    <tr style="background:rgba(255,255,255,0.10);color:#fff;">
+                        <th style="padding:10px 0;">Date Set</th>
+                        <th style="padding:10px 0;">Goal Body Fat (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for goal in goal_history %}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.10);">
+                        <td style="padding:8px 0;text-align:center;">{{ goal.date }}</td>
+                        <td style="padding:8px 0;text-align:center;">{{ goal.value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('bodyfat') }}" class="btn" style="display:block;background:rgba(255,255,255,0.08);color:rgb(156, 84, 84);border:1.2px solid #fff;padding:10px 28px;border-radius:16px;font-size:1.1em;font-family:'Aquire',Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin:0 auto 18px auto;backdrop-filter:blur(2px);transition:background 0.2s;letter-spacing:1px;width:60%;max-width:100%;text-align:center;">&#8592; Back to Body Fat Tracker</a>
+        <form method="POST" action="{{ url_for('delete_bodyfat_entries') }}">
+        <table style="width:100%;margin-top:18px;border-collapse:collapse;color:#fff;">
+            <thead>
+                <tr style="background:rgba(255,255,255,0.10);color:#fff;">
+                    <th style="padding:10px 0;"></th>
+                    <th style="padding:10px 0;">Date</th>
+                    <th style="padding:10px 0;">Waist (cm)</th>
+                    <th style="padding:10px 0;">Neck (cm)</th>
+                    <th style="padding:10px 0;">Hips (cm)</th>
+                    <th style="padding:10px 0;">Body Fat (%)</th>
+                    <th style="padding:10px 0;">Goal at Entry (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in bodyfat_logs %}
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.10);">
+                    <td style="padding:8px 0;text-align:center;"><input type="checkbox" name="bodyfat_ids" value="{{ entry.id }}" style="transform:scale(1.2);"></td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.date }}</td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.waist if entry.waist is not none else '-' }}</td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.neck if entry.neck is not none else '-' }}</td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.hip if entry.hip is not none else '-' }}</td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.body_fat }}</td>
+                    <td style="padding:8px 0;text-align:center;">{{ entry.goal_body_fat if entry.goal_body_fat is not none else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" style="margin:24px auto 0 auto;display:block;background:rgb(116,60,60);color:white;font-weight:bold;padding:12px 36px;border:none;border-radius:8px;font-size:1.1em;">Delete Selected</button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Suggestions{% endblock %}
+{% block content %}
+<style>
+  body, .container {
+    background: linear-gradient(135deg, #222 0%, #465a54 50%, #CFFFE2 100%) !important;
+    color: #F6F6F6 !important;
+    font-family: 'Aquire', 'Segoe UI', Arial, sans-serif;
+  }
+  .container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 32px 24px 24px 24px;
+    background: rgba(0,0,0,0.85);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px 0 rgba(162,213,198,0.18);
+  }
+  h1 {
+    text-align: center;
+    font-size: 2.4em;
+    margin-bottom: 36px;
+    color: #92d9ae;
+    letter-spacing: 2px;
+    font-family: 'Aquire', 'Segoe UI', Arial, sans-serif;
+  }
+  .card {
+    border-radius: 16px;
+    margin-bottom: 32px;
+    padding: 28px 28px 18px 28px;
+    box-shadow: 0 4px 24px 0 rgba(207,255,226,0.13);
+    color: #000000;
+    border: none;
+    transition: transform 0.15s;
+    border-left: 10px solid #A2D5C6;
+    background: #A2D5C6;
+  }
+  .card.workouts {
+    background: linear-gradient(120deg, #A2D5C6 60%, #CFFFE2 100%);
+    border-left: 10px solid #A2D5C6;
+  }
+  .card.hydration {
+    background: linear-gradient(120deg, #CFFFE2 60%, #A2D5C6 100%);
+    border-left: 10px solid #CFFFE2;
+  }
+  .card.weight {
+    background: linear-gradient(120deg, #e7fff7 60%, #25443b 100%);
+    border-left: 10px solid #F6F6F6;
+  }
+  .card.bodyfat {
+    background: linear-gradient(120deg, #A2D5C6 60%, #F6F6F6 100%);
+    border-left: 10px solid #A2D5C6;
+  }
+  .card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 8px 32px 0 rgba(162,213,198,0.22);
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.5em;
+    color: #000000;
+    letter-spacing: 1.5px;
+    font-family: 'Aquire', 'Segoe UI', Arial, sans-serif;
+    margin-bottom: 12px;
+  }
+  .card ul {
+    list-style: disc inside;
+    padding-left: 0;
+    margin-bottom: 0;
+  }
+  .card li {
+    font-size: 1.08em;
+    margin-bottom: 8px;
+    color: #222;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    letter-spacing: 0.2px;
+  }
+  @media (max-width: 600px) {
+    .container { padding: 10px; }
+    .card { padding: 16px 8px; }
+    h1 { font-size: 1.3em; }
+  }
+</style>
+<div class="container">
+    <h1>Personalized Suggestions</h1>
+    {% if workout_suggestions %}
+    <div class="card workouts">
+        <h2>Workouts</h2>
+        <ul>
+        {% for s in workout_suggestions %}
+            <li>{{ s }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if hydration_suggestions %}
+    <div class="card hydration">
+        <h2>Hydration</h2>
+        <ul>
+        {% for s in hydration_suggestions %}
+            <li>{{ s }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if weight_suggestions %}
+    <div class="card weight">
+        <h2>Body Weight</h2>
+        <ul>
+        {% for s in weight_suggestions %}
+            <li>{{ s }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if bodyfat_suggestions %}
+    <div class="card bodyfat">
+        <h2>Body Fat</h2>
+        <ul>
+        {% for s in bodyfat_suggestions %}
+            <li>{{ s }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if not (workout_suggestions or hydration_suggestions or weight_suggestions or bodyfat_suggestions) %}
+    <div style="text-align:center;color:#A2D5C6;font-size:1.2em;">No suggestions available yet. Log some progress to get personalized tips!</div>
+    {% endif %}
+</div>
+{% endblock %} 

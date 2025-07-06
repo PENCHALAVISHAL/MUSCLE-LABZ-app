@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Body Fat Tracker{% endblock %}
+{% block body_class %}bodyfat-bg{% endblock %}
+{% block styles %}
+{% endblock %}
+{% block content %}
+<div class="page-center-wrapper">
+    <div style="max-width:700px;width:100%;margin:48px auto 0 auto;text-align:center;">
+        <a href="{{ url_for('view_bodyfat') }}" class="btn" style="display:block;background:rgba(108, 149, 84, 0.097);color:rgb(110, 165, 103);border:1.2px solid #fff;padding:10px 28px;border-radius:16px;font-size:1.1em;font-family:'Aquire',Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin:0 auto 18px auto;backdrop-filter:blur(2px);transition:background 0.2s;letter-spacing:1px;width:60%;max-width:100%;text-align:center;">View Entries</a>
+    </div>
+    <div style="position:relative;max-width:700px;width:100%;margin:0 auto 32px auto;">
+        <div class="form-container" style="background:rgba(114, 140, 114, 0.382);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);padding:36px 32px 32px 32px;width:100%;margin:0 auto;">
+            <h2 style="color:#00bcd4;font-family:'Aquire',Arial,sans-serif;letter-spacing:2px;text-align:center;">BODY FAT TRACKER</h2>
+            {% if message %}<div style="color:#388e3c;margin-bottom:12px;text-align:center;">{{ message }}</div>{% endif %}
+            <form method="POST" action="{{ url_for('bodyfat') }}" style="margin-top:32px;">
+                <label for="goal_body_fat" style="color:#65a263;display:block;text-align:center;font-size:1.1em;">Goal Body Fat (%):</label>
+                <input type="number" step="0.1" min="1" max="60" name="goal_body_fat" id="goal_body_fat" value="{{ goal_body_fat|string if goal_body_fat is not none else '' }}" style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                <button type="submit" name="set_goal" style="background-color:rgb(99, 116, 60);color:white;font-weight:bold;cursor:pointer;width:60%;padding:12px 0;border:none;border-radius:6px;font-size:16px;display:block;margin:0 auto 18px auto;">Set Goal</button>
+            </form>
+            <form id="bodyfat-form" method="POST" action="{{ url_for('bodyfat') }}">
+                <label for="waist" style="color:#7da263;display:block;text-align:center;font-size:1.1em;">Waist (cm):</label>
+                <input type="number" step="0.1" id="waist" name="waist" required style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                <label for="neck" style="color:#7da263;display:block;text-align:center;font-size:1.1em;">Neck (cm):</label>
+                <input type="number" step="0.1" id="neck" name="neck" required style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                {% if gender.lower() == "female" %}
+                <label for="hip" style="color:#7da263;display:block;text-align:center;font-size:1.1em;">Hips (cm):</label>
+                <input type="number" step="0.1" id="hip" name="hip" style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                {% endif %}
+                <button type="submit" class="modern-button button-primary" style="background-color:rgb(64, 91, 55);color:white;font-weight:bold;cursor:pointer;width:60%;padding:12px 0;border:none;border-radius:6px;font-size:16px;display:block;margin:0 auto;">Calculate & Save</button>
+            </form>
+            {% if suggestion %}<p style="margin-top: 5px; color: #b2ffb2; font-style: italic;text-align:center;">{{ suggestion }}</p>{% endif %}
+        </div>
+    </div>
+    {# Estimated date message block - Jinja only, not JS or CSS #}
+    {% if estimated_date == "unrealistic" %}
+        <div class="goal-estimate-message">Goal not realistically reachable at your current trend. Try adjusting your habits or set a more gradual goal!</div>
+    {% elif estimated_date %}
+        <div class="goal-estimate-message">Estimated date to reach your goal: <span style="color:#fff;">{{ estimated_date }}</span></div>
+    {% else %}
+        <div class="goal-estimate-message">No estimated date (goal not reachable at current trend).</div>
+    {% endif %}
+    <div style="max-width:700px;width:100%;min-height:500px;margin:40px auto 40px auto;background:rgba(69, 85, 65, 0.286);border-radius:16px;text-align:center;padding:30px 0;box-shadow:0 6px 24px rgba(0,0,0,0.08);">
+        <canvas id="bodyFatChart" style="width:100%;height:420px;max-width:100%;" height="420"></canvas>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartData = {{ chart_data|tojson }};
+    const dates = chartData.map(row => row.date);
+    const values = chartData.map(row => row.body_fat);
+    const goal = {{ goal_body_fat if goal_body_fat else 15 }};
+    const goals = values.map(() => goal);
+    const regression = {{ regression|tojson }};
+    const regressionData = regression.length === values.length ? regression : Array(values.length).fill(null);
+    const ctx = document.getElementById('bodyFatChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Body Fat %',
+                    data: values,
+                    borderColor: '#ffb347',
+                    backgroundColor: 'rgba(255,179,71,0.10)',
+                    fill: false,
+                    tension: 0.2,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#ffb347',
+                },
+                {
+                    label: 'Goal Body Fat %',
+                    data: goals,
+                    borderColor: '#ff4444',
+                    borderDash: [4, 4],
+                    fill: false,
+                    pointRadius: 0
+                },
+                {
+                    label: 'Trend (Regression)',
+                    data: regressionData,
+                    borderColor: '#00e6e6',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.1,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Body Fat % Over Time',
+                    color: '#fff'
+                },
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.08)' }
+                },
+                y: {
+                    ticks: { color: '#fff' },
+                    grid: { color: 'rgba(255,255,255,0.08)' }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Weight Tracker{% endblock %}
+{% block body_class %}weight-bg{% endblock %}
+{% block content %}
+<div class="page-center-wrapper">
+    <div style="max-width:700px;width:100%;margin:48px auto 0 auto;text-align:center;">
+        <a href="{{ url_for('view_weight') }}" class="btn" style="display:block;background:rgba(255,255,255,0.08);color:rgb(156, 84, 84);border:1.2px solid #fff;padding:10px 28px;border-radius:16px;font-size:1.1em;font-family:'Aquire',Arial,sans-serif;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin:0 auto 18px auto;backdrop-filter:blur(2px);transition:background 0.2s;letter-spacing:1px;width:60%;max-width:100%;text-align:center;">View Entries</a>
+    </div>
+    <div style="position:relative;max-width:700px;width:100%;margin:0 auto 32px auto;">
+        <div class="form-container" style="background:rgba(128, 114, 140, 0.382);border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);padding:36px 32px 32px 32px;width:100%;margin:0 auto;">
+            <h2 style="color:#00bcd4;font-family:'Aquire',Arial,sans-serif;letter-spacing:2px;text-align:center;">WEIGHT TRACKER</h2>
+            {% if message %}<div style="color:#388e3c;margin-bottom:12px;text-align:center;">{{ message }}</div>{% endif %}
+            <form method="POST" action="{{ url_for('weight') }}" style="margin-top:32px;">
+                <label for="goal_weight" style="color:#8963a2;display:block;text-align:center;font-size:1.1em;">Goal Weight (kg):</label>
+                <input type="number" step="0.1" id="goal_weight" name="goal_weight" value="{{ goal_weight if goal_weight else '' }}" style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                <button type="submit" name="set_goal" value="1" style="background-color:rgb(116, 60, 60);color:white;font-weight:bold;cursor:pointer;width:60%;padding:12px 0;border:none;border-radius:6px;font-size:16px;display:block;margin:0 auto 18px auto;">Set Goal</button>
+                {% if estimated_date %}
+                <div style="color:#fff;font-size:1.05em;margin-top:8px;text-align:center;font-weight:bold;">Estimated date to reach goal: {{ estimated_date }}</div>
+                {% endif %}
+            </form>
+            <form method="POST" action="{{ url_for('weight') }}">
+                <label for="weight" style="color:#8963a2;display:block;text-align:center;font-size:1.1em;">Enter Your Weight (kg):</label>
+                <input type="number" step="0.1" id="weight" name="weight" required style="padding:12px;font-size:16px;width:100%;border-radius:6px;border:1px solid #00bcd4;margin:18px 0 18px 0;text-align:center;">
+                <button type="submit" name="save_weight" value="1" style="background-color:rgb(116, 60, 60);color:white;font-weight:bold;cursor:pointer;width:60%;padding:12px 0;border:none;border-radius:6px;font-size:16px;display:block;margin:0 auto;">Save Weight</button>
+                <div style="color:#888;font-size:0.95em;margin-top:8px;text-align:center;">Date: {{ today }}</div>
+            </form>
+        </div>
+    </div>
+    <div style="max-width:700px;width:100%;min-height:500px;margin:40px auto 40px auto;background:rgba(128, 114, 140, 0.382);border-radius:16px;text-align:center;padding:30px 0;box-shadow:0 6px 24px rgba(0,0,0,0.08);">
+        <canvas id="weightChart" style="width:100%;height:420px;max-width:100%;" height="420"></canvas>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const weightLogs = {{ weight_logs | tojson | safe }};
+  const regression = {{ regression | tojson | safe }};
+  const goalWeight = {{ goal_weight|tojson }};
+  const ctx = document.getElementById('weightChart').getContext('2d');
+  const labels = weightLogs.map(d => d.date);
+  const datasets = [
+    {
+      label: 'Weight (kg)',
+      data: weightLogs.map(d => d.weight),
+      borderColor: '#2a3f5f',
+      backgroundColor: 'rgba(42,63,95,0.10)',
+      pointBackgroundColor: '#4f6272',
+      pointBorderColor: '#2a3f5f',
+      fill: true,
+      tension: 0.25,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 3
+    }
+  ];
+  if (regression.length > 0) {
+    datasets.push({
+      label: 'Trend Line',
+      data: regression,
+      borderColor: '#b0b4ba',
+      backgroundColor: '#b0b4ba',
+      borderWidth: 3,
+      fill: false,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderDash: [6, 4],
+      tension: 0.25
+    });
+  }
+  if (goalWeight !== null && goalWeight !== undefined) {
+    datasets.push({
+      label: 'Goal Weight',
+      data: Array(labels.length).fill(goalWeight),
+      borderColor: '#a94442',
+      borderDash: [8, 6],
+      borderWidth: 2,
+      fill: false,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0.2
+    });
+  }
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true, labels: { color: '#fff', font: { weight: 'bold' } } },
+        title: {
+          display: true,
+          text: 'Weight Progress',
+          color: '#fff',
+          font: { size: 22, weight: 'bold' },
+          padding: { top: 15, bottom: 0 }
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(30,30,30,0.92)',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          borderColor: '#b0b4ba',
+          borderWidth: 1
+        }
+      },
+      elements: {
+        line: {
+          borderJoinStyle: 'round',
+          capBezierPoints: true
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Date', color: '#fff', font: { weight: 'bold' } }, ticks: { color: '#fff', font: { weight: 'bold' } }, grid: { color: 'rgba(255,255,255,0.10)' } },
+        y: { title: { display: true, text: 'Weight (kg)', color: '#fff', font: { weight: 'bold' } }, beginAtZero: false, ticks: { color: '#fff', font: { weight: 'bold' } }, grid: { color: 'rgba(255,255,255,0.10)' } }
+      }
+    }
+  });
+});
+</script>
+{% endblock %} 

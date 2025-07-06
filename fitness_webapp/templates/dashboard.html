@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block body_class %}home-bg{% endblock %}
+{% block content %}
+<div class="modern-home-container">
+    <div class="modern-home-header">
+        <div class="user-greeting">
+            <div>
+                <div class="greeting-text" id="greetingText" style="font-size:2.1em;font-weight:900;letter-spacing:1px;line-height:1.2;">Welcome!</div>
+                <div class="user-name">{{ user_data.name or user_data.username or 'User' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="modern-widget-grid">
+        <a href="{{ url_for('workout_tracker') }}" class="modern-widget widget-1" style="text-decoration: none !important;">
+            <div class="widget-label">WORKOUTS</div>
+        </a>
+        <a href="{{ url_for('hydration') }}" class="modern-widget widget-2" style="text-decoration: none !important;">
+            <span class="widget-icon icon-water"></span>
+            <div class="widget-label">HYDRATION</div>
+            <div class="widget-value">--</div>
+        </a>
+        <a href="{{ url_for('weight') }}" class="modern-widget widget-3" style="text-decoration: none !important;">
+            <span class="widget-icon icon-weight"></span>
+            <div class="widget-label">BODYWEIGHT</div>
+            <div class="widget-value">--</div>
+        </a>
+        <a href="{{ url_for('bodyfat') }}" class="modern-widget widget-4" style="text-decoration: none !important;">
+            <span class="widget-icon icon-bodyfat"></span>
+            <div class="widget-label">BODY FAT</div>
+            <div class="widget-value">--</div>
+        </a>
+    </div>
+</div>
+<script>
+function toggleMenu() {
+    var menu = document.getElementById('dropdownMenu');
+    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+document.addEventListener('click', function(event) {
+    var menu = document.getElementById('dropdownMenu');
+    var btn = document.querySelector('.menu-btn');
+    if (!btn.contains(event.target) && !menu.contains(event.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+// Set greeting based on time of day
+(function() {
+    var greetingText = document.getElementById('greetingText');
+    var now = new Date();
+    var hour = now.getHours();
+    var greeting = '';
+    if (hour >= 5 && hour < 12) {
+        greeting = 'Good morning! Ready to crush your goals?';
+    } else if (hour >= 12 && hour < 17) {
+        greeting = 'Good afternoon! Keep up the great work!';
+    } else if (hour >= 17 && hour < 21) {
+        greeting = 'Good evening! Time to reflect and recharge!';
+    } else {
+        greeting = 'Good night! Rest well for tomorrow!';
+    }
+    greetingText.textContent = greeting;
+})();
+</script>
+{% endblock %} 

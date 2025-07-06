@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}View Workouts - MUSCLE LABZ{% endblock %}
+
+{% block body_class %}workout-bg{% endblock %}
+
+{% block content %}
+<div class="modern-form-container" style="padding-top: 20px; padding-bottom: 50px;">
+    <h1 class="form-title" style="font-size: 2.8em; margin-bottom: 30px;">MY WORKOUT LOG</h1>
+
+    <div class="form-header-buttons">
+        <a href="{{ url_for('workout_tracker') }}" class="modern-button button-secondary">Workout Tracker</a>
+        <a href="{{ url_for('dashboard') }}" class="modern-button button-secondary">Dashboard</a>
+    </div>
+
+    <form id="delete-workouts-form" method="POST" action="{{ url_for('delete_workouts') }}" onsubmit="return confirm('Are you sure you want to delete the selected entries?');">
+        <button type="submit" class="modern-button button-danger" style="margin-bottom: 18px;">Delete Selected</button>
+        <div class="modern-table-container">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all" onclick="toggleAll(this)"></th>
+                        <th>Date</th>
+                        <th>Exercise</th>
+                        <th>Weight (kg)</th>
+                        <th>Reps</th>
+                        <th>Sets</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if workouts %}
+                        {% for workout in workouts %}
+                        <tr>
+                            <td><input type="checkbox" name="workout_ids" value="{{ workout.id }}"></td>
+                            <td>{{ workout.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ workout.exercise }}</td>
+                            <td>{{ "%.2f"|format(workout.weight) }}</td>
+                            <td>{{ workout.reps }}</td>
+                            <td>{{ workout.sets }}</td>
+                            <td class="notes-cell">{{ workout.notes or 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="no-data-cell">You haven't logged any workouts yet. <a href="{{ url_for('workout_tracker') }}">Log your first one now!</a></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <div class="analytics-container" style="margin-top: 50px;">
+        <h2 class="form-title" style="font-size: 2.2em; margin-bottom: 20px;">Workout Analytics</h2>
+        {% if chart_labels %}
+            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px;">
+                <canvas id="workoutAnalyticsChart"></canvas>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const ctx = document.getElementById('workoutAnalyticsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: {{ chart_labels|tojson }},
+                            datasets: [{
+                                label: 'Total Volume (Weight * Reps * Sets)',
+                                data: {{ chart_values|tojson }},
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: '#ffffff'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#ffffff'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#ffffff'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            </script>
+        {% else %}
+            <p class="no-data-cell" style="text-align: center; margin-top: 20px;">No workout data available to generate analytics yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('input[name="workout_ids"]');
+    for (const cb of checkboxes) {
+        cb.checked = source.checked;
+    }
+}
+</script>
+{% endblock %} 

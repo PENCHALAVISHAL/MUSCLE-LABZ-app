@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Workout Tracker - MUSCLE LABZ{% endblock %}
+
+{% block body_class %}workout-bg{% endblock %}
+
+{% block content %}
+<div class="modern-form-container" style="padding-top: 20px; padding-bottom: 50px;">
+    <h1 class="form-title" style="font-size: 2.8em; margin-bottom: 10px;">WORKOUT TRACKER</h1>
+    <p class="form-subtitle" style="margin-bottom: 30px;">Log your session and track your progress.</p>
+
+    <div class="form-header-buttons">
+        <a href="{{ url_for('dashboard') }}" class="modern-button button-secondary">Dashboard</a>
+        <a href="{{ url_for('view_workouts') }}" class="modern-button button-secondary">View Entries</a>
+        <a href="{{ url_for('analytics') }}" class="modern-button button-secondary">Analytics</a>
+    </div>
+
+    <form id="workout-form" method="POST" action="{{ url_for('save_workout') }}" class="modern-form">
+        <!-- Category and Exercise -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" class="modern-input">
+                    <option value="" disabled selected>Select a category...</option>
+                    {% for category in categories %}
+                        <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="exercise">Exercise</label>
+                <select id="exercise" name="exercise" class="modern-input" disabled>
+                    <option value="" disabled selected>First select a category...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Weight and Unit -->
+        <div class="form-row">
+            <div class="form-group" style="flex-grow: 2;">
+                <label for="weight">Weight</label>
+                <input type="number" id="weight" name="weight" class="modern-input" placeholder="e.g., 60.5" step="0.5" required>
+            </div>
+            <div class="form-group" style="flex-grow: 1;">
+                <label>Unit</label>
+                <div class="radio-group">
+                    <input type="radio" id="kg" name="unit" value="kg" checked>
+                    <label for="kg">kg</label>
+                    <input type="radio" id="lbs" name="unit" value="lbs">
+                    <label for="lbs">lbs</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reps and Sets -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="reps">Reps</label>
+                <input type="number" id="reps" name="reps" class="modern-input" placeholder="e.g., 12" required>
+            </div>
+            <div class="form-group">
+                <label for="sets">Sets</label>
+                <input type="number" id="sets" name="sets" class="modern-input" placeholder="e.g., 3" required>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" class="modern-input" rows="4" placeholder="e.g., 'Felt strong, could increase weight next time.'"></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="modern-button button-primary">Log Workout</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category');
+    const exerciseSelect = document.getElementById('exercise');
+
+    categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        exerciseSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+        exerciseSelect.disabled = true;
+
+        if (category) {
+            fetch(`{{ url_for('api_exercises') }}?category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    exerciseSelect.innerHTML = '<option value="" disabled selected>Select an exercise...</option>';
+                    data.forEach(exercise => {
+                        const option = new Option(exercise.name, exercise.name);
+                        exerciseSelect.add(option);
+                    });
+                    exerciseSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error fetching exercises:', error);
+                    exerciseSelect.innerHTML = '<option value="" disabled selected>Error loading exercises</option>';
+                });
+        } else {
+            exerciseSelect.innerHTML = '<option value="" disabled selected>First select a category...</option>';
+        }
+    });
+});
+</script>
+
+{% endblock %} 

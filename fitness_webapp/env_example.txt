@@ -1,0 +1,14 @@
+# Flask Configuration
+SECRET_KEY=your_super_secret_key_change_this_in_production
+FLASK_ENV=production
+
+# Database Configuration
+# For PostgreSQL (production)
+DATABASE_URL=postgresql://username:password@localhost:5432/fitness_tracker
+
+# For SQLite (development)
+# DATABASE_URL=sqlite:///fitness_tracker.db
+
+# Session Configuration
+SESSION_TYPE=filesystem
+PERMANENT_SESSION_LIFETIME=3600 

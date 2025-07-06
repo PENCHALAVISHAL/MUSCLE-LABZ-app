@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Basic Info{% endblock %}
+{% block body_class %}basic-info-bg{% endblock %}
+{% block content %}
+<div class="page-center-wrapper">
+    <div class="basic-info-container">
+        <h2>BASIC INFO</h2>
+        <form method="POST" action="{{ url_for('basic_info') }}">
+            <div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" value="{{ user_data.name if user_data else '' }}" required></div>
+            <div class="form-group"><label for="age">Age</label><input type="number" id="age" name="age" value="{{ user_data.age if user_data else '' }}" required></div>
+            <div class="form-group"><label for="height">Height (cm)</label><input type="number" id="height" name="height" value="{{ user_data.height if user_data else '' }}" required></div>
+            <div class="form-group"><label for="weight">Weight (kg)</label><input type="number" id="weight" name="weight" value="{{ user_data.weight if user_data else '' }}" required></div>
+            <div class="form-group"><label for="body_fat">Body Fat % (Optional)</label><input type="number" id="body_fat" name="body_fat" value="{{ user_data.body_fat if user_data else '' }}"></div>
+            <div class="form-group"><label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select</option>
+                    <option value="Male" {% if user_data and user_data.gender=='Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if user_data and user_data.gender=='Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if user_data and user_data.gender=='Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="activity_level">Activity Level</label>
+                <select id="activity_level" name="activity_level" required>
+                    <option value="">Select</option>
+                    <option value="Sedentary (Little to no exercise)" {% if user_data and user_data.activity_level=='Sedentary (Little to no exercise)' %}selected{% endif %}>Sedentary (Little to no exercise)</option>
+                    <option value="Lightly Active (1-3 days/week)" {% if user_data and user_data.activity_level=='Lightly Active (1-3 days/week)' %}selected{% endif %}>Lightly Active (1-3 days/week)</option>
+                    <option value="Moderately Active (3-5 days/week)" {% if user_data and user_data.activity_level=='Moderately Active (3-5 days/week)' %}selected{% endif %}>Moderately Active (3-5 days/week)</option>
+                    <option value="Very Active (6-7 days/week)" {% if user_data and user_data.activity_level=='Very Active (6-7 days/week)' %}selected{% endif %}>Very Active (6-7 days/week)</option>
+                    <option value="Super Active (Athlete)" {% if user_data and user_data.activity_level=='Super Active (Athlete)' %}selected{% endif %}>Super Active (Athlete)</option>
+                </select>
+            </div>
+            <div class="form-group"><label for="fitness_goal">Fitness Goal</label>
+                <select id="fitness_goal" name="fitness_goal" required>
+                    <option value="">Select</option>
+                    <option value="Weight Loss" {% if user_data and user_data.fitness_goal=='Weight Loss' %}selected{% endif %}>Weight Loss</option>
+                    <option value="Muscle Gain" {% if user_data and user_data.fitness_goal=='Muscle Gain' %}selected{% endif %}>Muscle Gain</option>
+                    <option value="Maintenance" {% if user_data and user_data.fitness_goal=='Maintenance' %}selected{% endif %}>Maintenance</option>
+                    <option value="Body Recomposition" {% if user_data and user_data.fitness_goal=='Body Recomposition' %}selected{% endif %}>Body Recomposition</option>
+                    <option value="Strength Training" {% if user_data and user_data.fitness_goal=='Strength Training' %}selected{% endif %}>Strength Training</option>
+                    <option value="Endurance Training" {% if user_data and user_data.fitness_goal=='Endurance Training' %}selected{% endif %}>Endurance Training</option>
+                    <option value="Sports Performance" {% if user_data and user_data.fitness_goal=='Sports Performance' %}selected{% endif %}>Sports Performance</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Save Information</button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

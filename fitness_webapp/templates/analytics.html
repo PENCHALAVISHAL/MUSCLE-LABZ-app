@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Workout Analytics - MUSCLE LABZ{% endblock %}
+
+{% block body_class %}workout-bg{% endblock %}
+
+{% block content %}
+<div class="modern-form-container analytics-vertical" style="padding-top: 20px; padding-bottom: 50px;">
+    <h1 class="form-title" style="font-size: 2.8em; margin-bottom: 30px;">WORKOUT ANALYTICS</h1>
+    <!-- 1. Stacked Area Chart: Daily Training Volume by Exercise -->
+    <div class="chart-card">
+        <h3>Daily Training Volume by Exercise</h3>
+        <canvas id="stackedAreaChart"></canvas>
+    </div>
+    <!-- 2. Bar Chart: Most Frequent Exercises -->
+    <div class="chart-card">
+        <h3>Most Frequent Exercises</h3>
+        <canvas id="freqBarChart"></canvas>
+    </div>
+    <!-- 3. Horizontal Bar: Average Reps per Exercise -->
+    <div class="chart-card">
+        <h3>Average Reps per Exercise</h3>
+        <canvas id="avgRepsBarChart"></canvas>
+    </div>
+    <!-- 4. Pie Chart: Workout Category Distribution -->
+    <div class="chart-card">
+        <h3>Workout Category Breakdown</h3>
+        <canvas id="pieChart"></canvas>
+    </div>
+    <div class="form-header-buttons" style="margin-top: 30px;">
+        <a href="{{ url_for('workout_tracker') }}" class="modern-button button-secondary">Workout Tracker</a>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Data from Flask
+const stackedDates = JSON.parse('{{ stacked_dates|tojson|safe }}');
+const stackedExercises = JSON.parse('{{ stacked_exercises|tojson|safe }}');
+const stackedVolumes = JSON.parse('{{ stacked_volumes|tojson|safe }}');
+const freqLabels = JSON.parse('{{ freq_labels|tojson|safe }}');
+const freqCounts = JSON.parse('{{ freq_counts|tojson|safe }}');
+const avgRepsLabels = JSON.parse('{{ avg_reps_labels|tojson|safe }}');
+const avgRepsValues = JSON.parse('{{ avg_reps_values|tojson|safe }}');
+const pieLabels = JSON.parse('{{ pie_labels|tojson|safe }}');
+const pieCounts = JSON.parse('{{ pie_counts|tojson|safe }}');
+
+function getColor(idx) {
+    const palette = [
+        '#4bc0c0', '#ff6384', '#36a2eb', '#ffcd56', '#9966ff', '#ff9f40', '#c9cbcf', '#e7e9ed', '#b2dfdb', '#f06292'
+    ];
+    return palette[idx % palette.length];
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fontColor = '#fff';
+    const fontFamily = 'Aquire, AquireLight, Arial, sans-serif';
+    const fontSize = 16;
+    // 1. Stacked Area Chart
+    if (stackedDates.length && stackedExercises.length) {
+        const datasets = stackedExercises.map((ex, idx) => ({
+            label: ex,
+            data: stackedVolumes.map(row => row[idx]),
+            fill: true,
+            backgroundColor: getColor(idx) + '33',
+            borderColor: getColor(idx),
+            tension: 0.3
+        }));
+        new Chart(document.getElementById('stackedAreaChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: stackedDates,
+                datasets: datasets
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: fontColor,
+                            font: { family: fontFamily, size: fontSize }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        titleColor: fontColor,
+                        bodyColor: fontColor,
+                        backgroundColor: '#222',
+                        titleFont: { family: fontFamily, size: fontSize+2 },
+                        bodyFont: { family: fontFamily, size: fontSize }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stacked: true,
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.15)' }
+                    },
+                    x: {
+                        stacked: true,
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.10)' }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    } else {
+        document.getElementById('stackedAreaChart').parentNode.innerHTML += '<div class="no-data">No data</div>';
+    }
+    // 2. Most Frequent Exercises
+    if (freqLabels.length) {
+        new Chart(document.getElementById('freqBarChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: freqLabels,
+                datasets: [{
+                    label: 'Count',
+                    data: freqCounts,
+                    backgroundColor: freqLabels.map((_,i)=>getColor(i)),
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false,
+                        labels: { color: fontColor, font: { family: fontFamily, size: fontSize } }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        titleColor: fontColor,
+                        bodyColor: fontColor,
+                        backgroundColor: '#222',
+                        titleFont: { family: fontFamily, size: fontSize+2 },
+                        bodyFont: { family: fontFamily, size: fontSize }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.15)' }
+                    },
+                    x: {
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.10)' }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    } else {
+        document.getElementById('freqBarChart').parentNode.innerHTML += '<div class="no-data">No data</div>';
+    }
+    // 3. Average Reps per Exercise
+    if (avgRepsLabels.length) {
+        new Chart(document.getElementById('avgRepsBarChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: avgRepsLabels,
+                datasets: [{
+                    label: 'Average Reps',
+                    data: avgRepsValues,
+                    backgroundColor: avgRepsLabels.map((_,i)=>getColor(i)),
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false,
+                        labels: { color: fontColor, font: { family: fontFamily, size: fontSize } }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        titleColor: fontColor,
+                        bodyColor: fontColor,
+                        backgroundColor: '#222',
+                        titleFont: { family: fontFamily, size: fontSize+2 },
+                        bodyFont: { family: fontFamily, size: fontSize }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.10)' }
+                    },
+                    y: {
+                        ticks: { color: fontColor, font: { family: fontFamily, size: fontSize } },
+                        grid: { color: 'rgba(255,255,255,0.15)' }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    } else {
+        document.getElementById('avgRepsBarChart').parentNode.innerHTML += '<div class="no-data">No data</div>';
+    }
+    // 4. Pie Chart
+    if (pieLabels.length) {
+        new Chart(document.getElementById('pieChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieCounts,
+                    backgroundColor: pieLabels.map((_,i)=>getColor(i)),
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: fontColor, font: { family: fontFamily, size: fontSize } }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        titleColor: fontColor,
+                        bodyColor: fontColor,
+                        backgroundColor: '#222',
+                        titleFont: { family: fontFamily, size: fontSize+2 },
+                        bodyFont: { family: fontFamily, size: fontSize }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+    } else {
+        document.getElementById('pieChart').parentNode.innerHTML += '<div class="no-data">No data</div>';
+    }
+});
+</script>
+{% endblock %} 

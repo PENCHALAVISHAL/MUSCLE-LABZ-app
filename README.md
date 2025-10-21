@@ -181,9 +181,7 @@ The service start command is already `gunicorn app:app`.
 - For LinearRegression trend/ETA, you’ll need 2+ data points and an active goal.
 - On Windows, if `Activate.ps1` is blocked, enable scripts: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` in an elevated PowerShell.
 
----
 
-## License
-MIT (or your preferred license). Replace this section if you have a specific license.
+
 
 
